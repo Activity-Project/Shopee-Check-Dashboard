@@ -13,6 +13,30 @@ import {
 import {
     stringify
 } from "querystring";
+import WebSocket from "ws";
+
+const sleep = (ms) => {
+    var stop = new Date().getTime();
+    while (new Date().getTime() < stop + ms) { }
+};
+
+const connectWebSocket = (link, index, viewCount) => {
+    const ws = new WebSocket(link);
+
+    ws.on('open', () => {
+        console.log(`WebSocket ${index + 1} connected with ${viewCount} views`);
+    });
+
+    ws.on('close', () => {
+        console.log(`WebSocket ${index + 1} disconnected, attempting to reconnect...`);
+        setTimeout(() => connectWebSocket(link, index, viewCount), 1000);
+    });
+
+    ws.on('error', (error) => {
+        console.error(`WebSocket ${index + 1} encountered an error, attempting to reconnect...`);
+        setTimeout(() => connectWebSocket(link, index, viewCount), 1000);
+    });
+}
 
 function showData(cookie, sessionid) {
     const index = fetch('https://creator.shopee.co.id/supply/api/lm/sellercenter/realtime/dashboard/overview?sessionId=' + sessionid + '', {
@@ -77,7 +101,7 @@ function infoAccount(cookie) {
 }
 
 function checkSession(cookie) {
-    const index = fetch('https://live.shopee.co.id/webapi/v1/session', {
+    const index = fetch('https://live.shopee.co.id/api/v1/session', {
             headers: {
                 'Host': 'live.shopee.co.id',
                 'Sec-Ch-Ua': '"Brave";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
